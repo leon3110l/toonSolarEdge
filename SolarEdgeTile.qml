@@ -4,21 +4,21 @@ import qb.components 1.0
 Tile {
 
     onClicked: app.openScreen("graph")
-    
+
     Text {
-        text: "zonnepanelen"
-        color: colors.tileTitleColor
-
-        font {
-            pixelSize: qfont.tileTitle
-            family: qfont.regular.name
-        }
-
-        anchors {
-            horizontalCenter: parent.horizontalCenter
-            topMargin: 35
-        }
-    }
+		id: tileTitle
+		color: colors.tileTitleColor
+		text: qsTr("Solar this moment")
+		anchors {
+			baseline: parent.top
+			baselineOffset: Math.round(30 * verticalScaling)
+			horizontalCenter: parent.horizontalCenter
+		}
+		font.pixelSize: qfont.tileTitle
+		horizontalAlignment: Text.AlignLeft
+		verticalAlignment: Text.AlignTop
+		font.family: qfont.regular.name
+	}
 
     Image {
         height: 60
@@ -27,21 +27,19 @@ Tile {
     }
 
     Text {
-        id: wattageText
-        text: "- W"
-        color: colors.tileTextColor
-
-        font {
-            pixelSize: qfont.tileTitle + 5
-            family: qfont.regular.name
-        }
-
-        anchors {
-            horizontalCenter: parent.horizontalCenter
-            bottomMargin: 5
-            bottom: parent.bottom
-        }
-    }
+		id: tileText
+		text: "-"
+		anchors {
+			horizontalCenter: parent.horizontalCenter
+			baseline: parent.bottom
+			baselineOffset: designElements.vMarginNeg16
+		}
+		verticalAlignment: Text.AlignBottom
+		horizontalAlignment: Text.AlignRight
+		font.pixelSize: qfont.tileText
+		font.family: qfont.regular.name
+		color: colors.tileTextColor
+	}
 
     Timer {
         interval: app.settings.updateFreq
@@ -57,10 +55,7 @@ Tile {
             "overview",
             function(overview) {
                 var wattage = overview.currentPower.power
-                if(!wattage) {
-                    wattage = "0"
-                }
-                wattageText.text = wattage + " W"
+                tileText.text = wattage == 0 ? "-" : qsTr("%1 Watt").arg(wattage)
             }
         )
     }
