@@ -9,6 +9,17 @@ Screen {
 
     onCustomButtonClicked: app.openScreen("config")
 
+    function init() {
+        bottomTabBar.addItem(qsTr("Hours"), "Hours");
+		bottomTabBar.addItem(qsTr("Days"), "Days");
+		bottomTabBar.addItem(qsTr("Weeks"), "Weeks");
+		bottomTabBar.addItem(qsTr("Months"), "Months");
+		bottomTabBar.addItem(qsTr("Years"), "Years");
+
+        bottomTabBar.currentIndex = 0;
+        topRightTabBarControlGroup.currentControlId = 0;
+    }
+
     onShown: {
         addCustomTopRightButton("Config")
 
@@ -57,15 +68,53 @@ Screen {
         )
     }
 
+    ControlGroup {
+		id: topRightTabBarControlGroup
+        currentControlId: 0
+		exclusive: true
+		onCurrentControlIdChanged: {
+
+        }
+		onCurrentControlIdChangedByUser: {
+
+        }
+	}
+
+	Flow {
+		id: topRightTabBar
+		anchors {
+			right: graphRect.right
+			top: parent.top
+			topMargin: designElements.vMargin20
+		}
+		spacing: Math.round(4 * horizontalScaling)
+
+		TopTabButton {
+			id: currencyButton
+			text: i18n.currency()
+			controlGroup: topRightTabBarControlGroup
+			leftClickMargin: 10
+			kpiId: "Costs"
+            visible: bottomTabBar.currentIndex != 0
+		}
+
+		TopTabButton {
+			id: energyButton
+            text: qsTr("Watt")
+			controlGroup: topRightTabBarControlGroup
+			kpiId: "Unit"
+		}
+	}
+
     Rectangle {
         
         id: graphRect
 
         anchors {
-            top: parent.top
-			topMargin: 3
-			bottom: parent.bottom
-			bottomMargin: 3
+            top: topRightTabBar.bottom
+			topMargin: colors.tabButtonUseExtension ? Math.round(4 * verticalScaling) : 0
+			bottom: bottomTabBar.top
+			bottomMargin: anchors.topMargin
 			left: parent.left
 			right: parent.right
 			leftMargin: Math.round(16 * horizontalScaling)
@@ -190,5 +239,42 @@ Screen {
 		// }
     }
 
+    BottomTabBar {
+		id: bottomTabBar
+        currentIndex: 0
+		anchors {
+			left: graphRect.left
+			bottom: parent.bottom
+		}
+        onCurrentControlIdChangedByUser: {
+
+        }
+		onCurrentIndexChanged: {
+			
+		}
+	}
+
+    Rectangle {
+		height: dateSelector.height
+		width: dateSelector.width
+		x: dateSelector.x
+		y: dateSelector.y
+		color: colors.graphScreenBackground
+		visible: dateSelector.visible
+	}
+
+    DateSelector {
+		id: dateSelector
+		anchors {
+			right: graphRect.right
+			top: graphRect.bottom
+		}
+		mode: DateSelectorComponent.MODE_DAY
+		periodStart: new Date()
+        periodMaximum: new Date()
+		onPeriodChanged: {
+		}
+		visible: bottomTabBar.currentIndex != 4
+	}
         
 }
