@@ -2,9 +2,10 @@ import QtQuick 2.1
 import qb.components 1.0
 import BasicUIControls 1.0
 
+import "dateHelpers.js" as DateHelpers
 
 Screen {
-
+	id: graphScreen
     screenTitle: "graph"
 
     onCustomButtonClicked: app.openScreen("config")
@@ -20,12 +21,21 @@ Screen {
         topRightTabBarControlGroup.currentControlId = 0;
     }
 
-    onShown: {
-        addCustomTopRightButton("Config")
+	function update() {
+		const options = {}
+		options.startDate = dateSelector.periodStart
+		options.endDate = dateSelector.periodEnd
 
-        app.getData(
+		if(dateSelector.periodStart.getTime() == dateSelector.periodEnd.getTime()) {
+			options.endDate = DateHelpers.addDay(options.endDate)
+		}
+
+		app.getData(
             "powerGraph",
             function(data) {
+				if(!data.values) {
+					return
+				}
                 const dataPoints = data.values.map(function(x) { return x.value })
                 areaGraph.graphValues = dataPoints
 
@@ -50,6 +60,10 @@ Screen {
                 }) - 2
                 // -2 because data was two off, too lazy to find out why
 
+				if(startAvg < 0 || endAvg < 0) {
+					return
+				}
+
                 var avgDataPoints = dataPoints.slice(startAvg, endAvg)
 
                 areaGraph.avgValue = avgDataPoints.reduce(function(a, b) { return a + b }) / avgDataPoints.length
@@ -64,8 +78,15 @@ Screen {
 
                 areaPopupTxt.text = qsTr("%1 Watt").arg(areaGraph.avgValue)
                 areaPopout.anchors.topMargin = areaGraph.getValuePos(0, [areaGraph.avgValue, 0]).y - areaPopout.height - (areaPopout.borderWidth / 2)
-            }
+            },
+			options
         )
+	}
+
+    onShown: {
+        addCustomTopRightButton("Config")
+
+		update()
     }
 
     ControlGroup {
@@ -269,10 +290,22 @@ Screen {
 			right: graphRect.right
 			top: graphRect.bottom
 		}
-		mode: DateSelectorComponent.MODE_DAY
+		mode: {
+			switch(bottomTabBar.currentIndex) {
+				case 3:
+					return DateSelectorComponent.MODE_YEAR
+				case 2:
+					return DateSelectorComponent.MODE_MONTH
+				case 1:
+					return DateSelectorComponent.MODE_WEEK
+				default:
+					return DateSelectorComponent.MODE_DAY
+			}
+		}
 		periodStart: new Date()
         periodMaximum: new Date()
 		onPeriodChanged: {
+			graphScreen.update()
 		}
 		visible: bottomTabBar.currentIndex != 4
 	}

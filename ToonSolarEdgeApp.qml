@@ -1,6 +1,7 @@
 import QtQuick 2.1
 import qb.base 1.0
 import FileIO 1.0
+import "dateHelpers.js" as DateHelpers
 
 App {
     property url tileUrl: "SolarEdgeTile.qml"
@@ -37,16 +38,16 @@ App {
             )
         },
         'powerGraph': function(resolve, options) {
-
-            const today = new Date()
-            const tomorrow = new Date();
-            tomorrow.setDate(today.getDate() + 1)
-
             const defaults = {
-                startTime: today.getFullYear()+"-"+(today.getMonth() + 1)+"-"+today.getDate()+" 00:00:00",
-                endTime: tomorrow.getFullYear()+"-"+(tomorrow.getMonth() + 1)+"-"+tomorrow.getDate()+" 00:00:00",
+                startDate: new Date(),
+                endDate: DateHelpers.addDay(new Date()),
             }
             options = mergeOptions(defaults, options)
+
+            options.startTime = DateHelpers.formatDate(options.startDate) + " 00:00:00"
+            options.endTime = DateHelpers.formatDate(options.endDate) + " 00:00:00"
+
+            console.log(JSON.stringify(options))
 
             var url = "https://monitoringapi.solaredge.com/site/"+ settings.siteId +"/power.json?api_key="+ settings.apiKey +"&startTime="+options.startTime+"&endTime=" + options.endTime
             fetch(
